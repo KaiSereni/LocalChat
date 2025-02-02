@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local GPT Chat</title>
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .chat-box { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
+        .message { margin: 5px 0; padding: 5px; border-radius: 5px; }
+        .user-message { background-color: #e3f2fd; }
+        .bot-message { background-color: #f5f5f5; }
+        .controls { margin-bottom: 10px; }
+        input[type="text"] { width: 60%; padding: 5px; }
+        button { padding: 5px 10px; }
+        .edit-btn { margin-left: 10px; cursor: pointer; color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Local GPT Chat</h1>
+    <div class="controls">
+        <select id="model-select">
+            <option value="gpt2">GPT-2</option>
+            <option value="gpt2-medium">GPT-2 Medium</option>
+        </select>
+        <input type="number" id="temperature" step="0.1" min="0.1" max="2.0" value="0.9" placeholder="Temperature">
+        <input type="number" id="max-length" min="20" max="1000" value="100" placeholder="Max Length">
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div>
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let chatHistory = [];
+
+        function renderMessages() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = '';
+            chatHistory.forEach((msg, index) => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.role}-message`;
+                div.innerHTML = `
+                    ${msg.content}
+                    ${msg.role === 'user' ? 
+                        `<span class="edit-btn" onclick="editMessage(${index})">✎</span>` : ''}
+                `;
+                chatBox.appendChild(div);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function editMessage(index) {
+            const newContent = prompt('Edit message:', chatHistory[index].content);
+            if (newContent !== null) {
+                chatHistory = chatHistory.slice(0, index);
+                chatHistory[index - 1].content = newContent;
+                sendChatRequest();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            chatHistory.push({ role: 'user', content: message });
+            input.value = '';
+            sendChatRequest();
+        }
+
+        function sendChatRequest() {
+            const model = document.getElementById('model-select').value;
+            const temperature = document.getElementById('temperature').value;
+            const maxLength = document.getElementById('max-length').value;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: chatHistory,
+                    model: model,
+                    temperature: temperature,
+                    max_length: maxLength
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    chatHistory.push({ role: 'bot', content: data.message });
+                    renderMessages();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+
+        // Initial render
+        renderMessages();
+    </script>
+</body>
+</html>

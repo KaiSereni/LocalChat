@@ -19,3 +19,19 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.bg-purple-500 {
+  background-color: #0B0523;
+}
+
+.bg-purple-400 {
+  background-color: #151221;
+}
+
+.bg-purple-200 {
+  background-color: #2c2b38;
+}
+
+.bg-purple-100 {
+  background-color: #836ce0;
+}
