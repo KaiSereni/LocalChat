@@ -19,6 +19,7 @@
 
 # production
 /build
+/templates/
 
 # misc
 .DS_Store
@@ -41,4 +42,4 @@ yarn-error.log*
 next-env.d.ts
 
 # python
-/.venv
+/.venv/

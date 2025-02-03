@@ -1,16 +1,26 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from transformers import pipeline
 import threading
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, 
+    static_folder='public', # For Next.js public assets
+    template_folder='templates' # For Next.js static HTML
+)
 
 # Cache for loaded models
 model_cache = {}
 model_lock = threading.Lock()
 
+# Add static file handling
+@app.route('/<path:path>')
+def static_file(path):
+    return send_from_directory('templates', path)
+
+# Update index route to serve Next.js index.html
 @app.route('/')
-def home():
-    return render_template('index.html')
+def index():
+    return send_from_directory('templates', 'index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -31,7 +41,7 @@ def chat():
 
     # Get or load the model
     with model_lock:
-        if model_name not in model_cache:
+        if (model_name not in model_cache):
             try:
                 model_cache[model_name] = pipeline(
                     'text-generation', 
@@ -57,4 +67,4 @@ def chat():
     return jsonify({'message': response})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=3000, debug=True)
