@@ -9,65 +9,183 @@ import temp from '../images/temperature-half-solid.svg'
 import hand from '../images/hand-solid.svg'
 import chain from '../images/link-solid.svg'
 import caret from '../images/caret-down-solid.svg';
-import { useState } from 'react';
+import trash from '../images/trash-solid.svg';
+import { use, useEffect, useState, useRef } from 'react';
 import { Tooltip } from 'react-tooltip';
 import {Popover, PopoverTrigger, PopoverContent} from "@heroui/popover";
 
 export default function Home() {
   type messages = {"role": "user"|"assistant", "content":string}[];
   const [messageHistory, setMessageHistory] = useState<messages>([]);
-  const [chatHistory, setChatHistory] = useState<{"id":number, "description":string}[]>([]);
+  const [selectedChat, setSelectedChat] = useState<string>("-1");
   const [model_temp, setModelTemp] = useState<string>("2.5");
   const [model_max_tokens, setModelMaxTokens] = useState<number>(500);
   const [model_cot, setModelCot] = useState<boolean>(false);
   const [current_message, setCurrentMessage] = useState<string>("");
   const [model_id, setModelID] = useState<string>("openai/gpt-2");
+  const [loadedModel, setLoadedModel] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const availableModels: {"org": string, "models": string[]}[] = [
     {"org": "openai", "models": ["gpt-2"]},
     {"org": "deepseek-ai", "models": ["DeepSeek-V3", "DeepSeek-Coder-V2-Base"]},
     {"org": "mistralai", "models": ["Mistral-Small-24B-Instruct-2501", "Ministral-8B-Instruct-2410"]}
   ]
   const [customModelField, setCustomModelField] = useState<string>("");
+  const [chatList, setChatList] = useState<any[]>([]);
+  const [showChatHistory, setShowChatHistory] = useState<boolean>(true);
+
+  const createNewChat = () => {
+    const chatid = Math.floor(Math.random()*99999)
+    setSelectedChat(chatid.toString());
+    setMessageHistory([]);
+  }
+
+  const deleteChat = (chat_id: number) => {
+    fetch('http://localhost:3001/deleteChat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatid: chat_id
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      fetch('http://localhost:3001/chatList', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(response => response.json())
+      .then(data => {
+        setChatList(data);
+      });
+    });
+  }
 
   const sendChatRequest = (message: string) => {
     messageHistory.push({"role":"user", "content":message});
-    fetch('/chat', {
+    fetch('http://localhost:3001/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            messages: chatHistory,
+            messages: messageHistory,
             model: model_id,
-            temperature: parseFloat(model_temp),
-            max_length: model_max_tokens
+            temperature: String(parseFloat(model_temp)),
+            max_length: model_max_tokens,
+            chain_of_thought: model_cot,
+            chatid: selectedChat
         })
     })
     .then(response => response.json())
     .then(data => {
-        messageHistory.push({"role":"assistant", "content":data.response});
+        if (messageHistory.length === 1) {
+          fetch('http://localhost:3001/chatList', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then(response => response.json())
+          .then(data => {
+            setChatList(data);
+          });
+        }
+        messageHistory.push({"role":"assistant", "content":data['response']});
         setMessageHistory([...messageHistory]);
     });
   }
 
+  useEffect(() => {
+    fetch('http://localhost:3001/chatList', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+      setChatList(data);
+    });
+  }, []);
+
+  const updateChatHistory = (chat_id: number) => {
+    if (chat_id === parseInt(selectedChat)) return;
+    setSelectedChat(chat_id.toString());
+    fetch('http://localhost:3001/chatHistory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatid: chat_id
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      setMessageHistory(data["messages"]);
+      console.log(messageHistory);
+    });
+  }
+
+  const loadModel = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/loadModel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: model_id
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setLoadedModel(model_id);
+      }
+    } catch (error) {
+      console.error('Error loading model:', error);
+    }
+    setIsLoading(false);
+  }
+
   return (
-    <div className="w-full h-full absolute flex">
-      <div className="fixed h-full w-64 max-w-[40vw] bg-purple-500 shadow rounded-lg">
+    <div className="min-w-[100vw] min-h-[100vh] relative flex">
+      <div className={clsx("fixed min-h-full max-w-[40vw] bg-purple-500 shadow rounded-lg duration-100", [showChatHistory ? "w-64" : "w-12"])} id='sidebar'>
         <div className='h-12 p-4 flex items-center'>
           <div className='w-fit h-full flex space-x-4'>
-            <img src={menu.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}}/>
+            <img src={menu.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}} onClick={() => setShowChatHistory(!showChatHistory)}/>
           </div>
-          <div className='w-fit ml-auto h-full flex space-x-4'>
-            <img src={search.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}}/>
-            <img src={pen.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}}/>
-          </div>
+          {
+            showChatHistory &&
+            <div className='w-fit ml-auto h-full flex space-x-4'>
+              <img src={search.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}}/>
+              <img src={pen.src} className='h-full cursor-pointer hover:opacity-80' style={{'filter': 'invert(0.7)'}} onClick={createNewChat}/>
+            </div>
+          }
         </div>
+        {
+          showChatHistory &&
+          <div className='p-4'>
+            <div className='space-y-2'>
+              {
+                chatList.map((chat, index) => (
+                  <div key={index} className={clsx("p-2 rounded-lg cursor-pointer hover:bg-gray-700 border border-gray-700 flex justify-between items-center", [selectedChat === chat.id ? "bg-gray-700 text-white" : "text-gray-400"])} onClick={() => updateChatHistory(chat.id)}>
+                    {chat.title}
+                    <img 
+                    src={trash.src} 
+                    className="h-4 ml-2 cursor-pointer hover:opacity-80"
+                    style={{filter: 'invert(0.5)'}}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteChat(chat.id);
+                    }} 
+                    />
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        }
       </div>
-      <div className="relative ml-64 w-full h-full">
-        <div className="fixed w-full h-16 p-3 px-6 flex bg-[#00000066] shadow-lg">
+      <div className={clsx("relative w-full min-h-full duration-100", [showChatHistory ? "ml-64" : "ml-12"])}>
+        <div className="fixed w-full h-16 p-3 px-6 flex bg-[#00000066] shadow-lg items-center">
           <Popover placement='bottom-start'>
             <PopoverTrigger>
               <div className='text-lg font-semibold text-gray-400 px-2 rounded-lg flex items-center cursor-pointer hover:bg-gray-700'>
-          <>{model_id}</>
-          <img src={caret.src} className='h-4 ml-2' style={{filter: "invert(0.6)"}}/>
+                <>{model_id}</>
+                <img src={caret.src} className='h-4 ml-2' style={{filter: "invert(0.6)"}}/>
               </div>
             </PopoverTrigger>
             <PopoverContent className="bg-gray-900 shadow-lg rounded-lg p-4">
@@ -101,8 +219,27 @@ export default function Home() {
               </div>
             </PopoverContent>
           </Popover>
+          
+          <div className='flex items-center ml-4 space-x-4'>
+            <button 
+              onClick={loadModel}
+              disabled={isLoading || model_id === loadedModel}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                isLoading ? 'bg-gray-600 cursor-wait' :
+                model_id === loadedModel ? 'bg-green-600' : 'bg-purple-600 hover:bg-purple-700'
+              } text-white`}
+            >
+              {isLoading ? 'Loading...' : 
+              model_id === loadedModel ? 'Model Loaded' : 'Load Model'}
+            </button>
+            {loadedModel && (
+              <span className='text-gray-400'>
+                Active model: {loadedModel}
+              </span>
+            )}
+          </div>
         </div>
-        <div className={clsx("w-full h-full flex justify-center items-center", [messageHistory.length ? "" : "items-center"])}>
+        <div className={clsx("w-full h-full flex justify-center items-center mb-12", [messageHistory.length ? "" : "items-center"])}>
           <div className={clsx("block h-fit", [messageHistory.length ? "w-full" : "w-2/3 mb-32"])}>
             {
               !messageHistory.length &&
@@ -112,15 +249,28 @@ export default function Home() {
             }
             {
               Boolean(messageHistory.length) &&
-              <div className='mb-32 mt-[340px]'>
+              <div className='mb-32 mt-12'>
                 {
-                  messageHistory.map((message, index) => (
-                    <div key={index} className={clsx("p-2 w-full", [message.role === "assistant" ? "justify-end" : "justify-start"])}>
-                      <div className={clsx("p-4 rounded-2xl shadow-lg w-fit max-w-[70vw]", [message.role === "assistant" ? "ml-auto rounded-br-sm bg-purple-200" : "mr-auto rounded-bl-sm bg-purple-100"])}>
-                        {message.content}
+                  messageHistory.map((message, index) => {
+                    const isLastMessage = index === messageHistory.length - 1;
+                    return (
+                      <div 
+                        key={index} 
+                        ref={isLastMessage ? (el) => {
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        } : null}
+                        className={clsx("p-2 w-full", [
+                          message.role === "assistant" ? "justify-end" : "justify-start"
+                        ])}
+                      >
+                        <div className={clsx("p-4 rounded-2xl shadow-lg w-fit max-w-[70vw]", [message.role === "assistant" ? "ml-auto rounded-br-sm bg-purple-200" : "mr-auto rounded-bl-sm bg-purple-100"])}>
+                          {message.content}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  })
                 }
               </div>
             }
@@ -136,6 +286,15 @@ export default function Home() {
                   const minHeight = 65;
                   target.style.height = "auto";
                   target.style.height = `${target.scrollHeight > minHeight ? target.scrollHeight : minHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (current_message.trim()) {
+                      sendChatRequest(current_message);
+                      setCurrentMessage("");
+                    }
+                  }
                 }}
               />
               <div className="flex w-full h-16 p-4">
@@ -204,7 +363,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                <div className="h-full w-8 rounded-full bg-white ml-auto hover:bg-gray-300 cursor-pointer">
+                <div className={clsx("h-full w-8 rounded-full bg-white ml-auto hover:bg-gray-300 cursor-pointer", [messageHistory.length && "mr-64"])}>
                   <img src={upArrow.src} className="p-[10px] -translate-y-0.5" onClick={() => {
                     sendChatRequest(current_message);
                     setCurrentMessage("");

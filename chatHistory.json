@@ -1,0 +1,44 @@
+{
+    "1": {
+        "title": "Greeting",
+        "messages": [
+            {
+                "role": "user",
+                "content": "Hello"
+            },
+            {
+                "role": "assistant",
+                "content": "Hi, how can I help you?"
+            }
+        ],
+        "model": "openai/gpt-2"
+    },
+    "2": {
+        "title": "Name",
+        "messages": [
+            {
+                "role": "user",
+                "content": "What is your name?"
+            },
+            {
+                "role": "assistant",
+                "content": "I am a chatbot"
+            }
+        ],
+        "model": "openai/gpt-2"
+    },
+    "3": {
+        "title": "Weather",
+        "messages": [
+            {
+                "role": "user",
+                "content": "What is the weather like?"
+            },
+            {
+                "role": "assistant",
+                "content": "I am a chatbot"
+            }
+        ],
+        "model": "openai/gpt-2"
+    }
+}
