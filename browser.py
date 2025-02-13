@@ -27,20 +27,16 @@ def calculate_typing_delay(wpm):
 
 def type_text(text, wpm=45, error_rate=0.2):
     try:
+        options = uc.ChromeOptions()
         # Set Chrome binary location based on OS
         if os.name == 'posix':  # macOS and Linux
-            chrome_path = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        else:  # Windows
-            chrome_path = 'C:/Program Files/Google Chrome/chrome.exe'
-
-        options = uc.ChromeOptions()
-        options.binary_location = chrome_path
+            options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
         
         driver = uc.Chrome(
             user_data_dir="./chromeData",
             options=options
         )
-        
+
         driver.get("https://docs.google.com/document/u/0/")
         wait = WebDriverWait(driver, 20)
         wait.until(EC.url_contains('/document/d/'))
@@ -93,4 +89,4 @@ def type_text(text, wpm=45, error_rate=0.2):
 
 if __name__ == "__main__":
     text = "Hello, this is a test message.\nThis is a second line."
-    type_text(text)
+    type_text(text, wpm=300, error_rate=0.2)
