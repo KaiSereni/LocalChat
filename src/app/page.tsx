@@ -238,6 +238,12 @@ export default function Home() {
               </span>
             )}
           </div>
+
+          <a href="/typer" className='ml-auto mr-64'>
+            <div className='flex items-center space-x-4 bg-purple-600 p-2 px-4 rounded-lg'>
+              Google Docs auto typer
+            </div>
+          </a>
         </div>
         <div className={clsx("w-full h-full flex justify-center items-center mb-12", [messageHistory.length ? "" : "items-center"])}>
           <div className={clsx("block h-fit", [messageHistory.length ? "w-full" : "w-2/3 mb-32"])}>

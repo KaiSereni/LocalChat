@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import os
 import json
+import webbrowser
 
 IS_TEST = True
 
@@ -18,7 +19,8 @@ CORS(app)
 
 # Add static file handling
 @app.route('/<path:path>')
-def static_file(path):
+def static_file(path: str):
+    path = os.path.join(path, "index.html") if not "." in path else path
     return send_from_directory('templates', path)
 
 # Update index route to serve Next.js index.html
@@ -146,5 +148,55 @@ def load_model():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Import browser automation functions
+from browser import open_google_docs, start_typing, pause_typing, resume_typing, close_browser
+
+@app.route('/browser/open', methods=['GET'])
+def browser_open_endpoint():
+    try:
+        open_google_docs()
+        return jsonify({"status": "Google Docs opened."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/browser/start', methods=['POST'])
+def browser_start_endpoint():
+    try:
+        data = request.get_json()
+        wpm = float(data.get("wpm", 45))
+        error_rate = float(data.get("error_rate", 0.2))
+        text = data.get("text", "")
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+        start_typing(text, wpm, error_rate)
+        return jsonify({"status": "Typing started"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/browser/pause', methods=['POST'])
+def browser_pause_endpoint():
+    try:
+        pause_typing()
+        return jsonify({"status": "Typing paused"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/browser/resume', methods=['POST'])
+def browser_resume_endpoint():
+    try:
+        resume_typing()
+        return jsonify({"status": "Typing resumed"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/browser/close', methods=['POST'])
+def browser_close_endpoint():
+    try:
+        close_browser()
+        return jsonify({"status": "Browser closed"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    webbrowser.open('http://localhost:3001')
+    app.run(host='0.0.0.0', port=3001, debug=False)
