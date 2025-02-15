@@ -76,7 +76,7 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["ia32", "x64", "arm64"]
+          "arch": ["x64", "arm64"]
         },
         {
           "target": "deb",
