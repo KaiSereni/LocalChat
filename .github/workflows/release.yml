@@ -1,5 +1,4 @@
-# language: YAML
-name: Build and Release
+npm install --save-dev electron-buildername: Build and Release
 
 on:
   push:
