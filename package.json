@@ -47,7 +47,11 @@
     "appId": "com.pohakoo.localchat",
     "productName": "Local Chat",
     "files": [
-      "**/*"
+      "!src/**/*",
+      "!templates/**/*",
+      "electron-main.js",
+      "package.json",
+      "build/**/*"
     ],
     "directories": {
       "buildResources": "assets"
