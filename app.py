@@ -198,5 +198,5 @@ def browser_close_endpoint():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    webbrowser.open('http://localhost:3001')
+    #webbrowser.open('http://localhost:3001')
     app.run(host='0.0.0.0', port=3001, debug=False)

@@ -26,6 +26,16 @@ export default function BrowserControl() {
 
   return (
     <div className="min-h-screen min-w-screen flex flex-col items-center justify-center space-y-4 p-4 text-black">
+    <div className="absolute top-4 left-4">
+        <button
+            onClick={() => {
+                window.location.href = "/";
+            }}
+            className="px-4 py-2 rounded text-white bg-indigo-600"
+        >
+            Go to Home
+        </button>
+    </div>
       <h1 className="text-2xl font-bold text-white">Browser Typing Control</h1>
       <div className="flex flex-col space-y-2 text-white w-full items-center justify-center">
         <label>
