@@ -59,8 +59,7 @@
           "arch": ["ia32", "x64", "arm64"]
         },
         {
-          "target": "portable",
-          "arch": ["ia32", "x64", "arm64"]
+          "target": "portable"
         }
       ]
     },
@@ -88,7 +87,8 @@
       {
         "provider": "github",
         "owner": "KaiSereni",
-        "repo": "LocalChat"
+        "repo": "LocalChat",
+        "token": "${env.GH_TOKEN}"
       }
     ]
   }
