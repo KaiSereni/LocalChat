@@ -6,8 +6,6 @@
   "description": "Easy to use, private, local AI application",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
     "start": "electron-forge start",
     "lint": "next lint",
     "electron-start": "electron .",
