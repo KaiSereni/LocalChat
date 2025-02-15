@@ -1,4 +1,4 @@
-npm install --save-dev electron-buildername: Build and Release
+name: Build and Release
 
 on:
   push:
