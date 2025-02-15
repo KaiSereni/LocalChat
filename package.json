@@ -73,13 +73,14 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
-      ],
-      "arch": [
-        "ia32",
-        "x64",
-        "arm64"
+        {
+          "target": "AppImage",
+          "arch": ["ia32", "x64", "arm64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["ia32", "x64", "arm64"]
+        }
       ]
     },
     "publish": [
