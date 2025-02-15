@@ -46,13 +46,6 @@
   "build": {
     "appId": "com.pohakoo.localchat",
     "productName": "Local Chat",
-    "files": [
-      "!src/**/*",
-      "!templates/**/*",
-      "electron-main.js",
-      "package.json",
-      "build/**/*"
-    ],
     "directories": {
       "buildResources": "assets"
     },
@@ -86,14 +79,6 @@
           "arch": ["x64", "arm64"]
         }
       ]
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "KaiSereni",
-        "repo": "LocalChat",
-        "token": "${env.GH_TOKEN}"
-      }
-    ]
+    }
   }
 }

@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import os
 import json
-import webbrowser
 
 IS_TEST = True
 
