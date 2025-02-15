@@ -5,6 +5,7 @@
   "private": true,
   "description": "Easy to use, private, local AI application",
   "license": "MIT",
+  "author": "KaiSereni <kai@kai.gallery>",
   "scripts": {
     "start": "electron-forge start",
     "lint": "next lint",
@@ -79,7 +80,7 @@
         },
         {
           "target": "deb",
-          "arch": ["ia32", "x64", "arm64"]
+          "arch": ["x64", "arm64"]
         }
       ]
     },
